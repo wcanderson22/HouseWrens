@@ -1,0 +1,63 @@
+### Some edits need to be done to personalize this to the data at hand.
+
+
+library(plyr)
+library(matrixStats)
+library(ggplot2)
+
+##### PCA #####
+setwd(/Users/willanderson/Desktop/R/PCA7:8)
+
+# import the vcf table that was re-coded using --012 option of vcftools
+data = read.table("fst.above.0.5.012.txt", header = F) 
+
+# import metadata file
+meta = read.table("meta.txt", header = T) 
+
+# prepare input for PCA
+data$V1 <- NULL
+data[data=="-1"] <- NA
+data <- as.data.frame(t(data))
+
+# PCA function
+do.pca<-function(gmat, write.gcov=FALSE){
+  gmn<-apply(gmat,1,mean, na.rm=T) # creates a vector of means for each row (for each snp, across all samples)
+  gmnmat<-matrix(gmn,nrow=nrow(gmat),ncol=ncol(gmat)) # creates a matrix, which has replicate columns of the above snp means
+  gprime<-gmat-gmnmat ## remove mean. # don't understand why we're doing this. To standardize?
+  
+  gcovarmat<-matrix(NA,nrow=ncol(gmat),ncol=ncol(gmat))
+  for(i in 1:ncol(gmat)){
+    print( c('on this individual:', i) )
+    for(j in i:ncol(gmat)){
+      if (i==j){
+        gcovarmat[i,j]<-cov( gprime[,i],gprime[,j] , use="pairwise.complete.obs")
+      }
+      else{
+        gcovarmat[i,j]<-cov( gprime[,i],gprime[,j] , use="pairwise.complete.obs")
+        gcovarmat[j,i]<-gcovarmat[i,j]
+      }
+    }
+  }
+  gcovarmat 
+  #prcomp(x=gcovarmat,center=TRUE,scale=FALSE)
+}
+
+# run PCA
+gcovarmat = do.pca(data, write.gcov=F ) 
+colRanges(gcovarmat) # checking for NAs
+pca.results = prcomp( gcovarmat ) 
+pcaOut = as.data.frame(cbind(pca.results$x[,1], pca.results$x[,2]))
+pcaData = cbind(meta$status, meta$vcfl.id, meta$phen.index,  pcaOut)
+names(pcaData) = c("status", "id", "phen.index", "PC1", "PC2")
+status=pcaData$status
+write.table(pcaData, "titmice.all.pca.output.txt", sep="\t", quote=F, row.names = F, col.names = T)
+summary(pca.results)
+
+# PCA plot 
+ggplot(data=pcaData, aes(x=PC1, y=PC2, colour=phen.index, shape=status)) + 
+  geom_point(size=5, alpha=0.8) +
+  stat_ellipse(type = "norm", linetype = 2, size=0.5) +
+  xlab("PC1, 83% of variance") +
+  ylab("PC2, 1% of variance") +
+  theme_bw()
+

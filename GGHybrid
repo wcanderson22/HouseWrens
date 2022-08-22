@@ -1,1 +1,82 @@
+install.packages("devtools")
 
+devtools::install_github("ribailey/gghybrid")
+
+library("gghybrid")
+
+?read.data
+
+dat <- read.data(file="gghybrid25loci.txt", nprecol=2,
+                 MISSINGVAL=-9,
+                 NUMINDS=125,
+                 ONEROW=T,
+                 PLOIDY=2,
+                 NUMLOCI=25)
+
+dat
+
+prepdata <- data.prep(data=dat$data, 
+loci=dat$loci, 
+alleles=dat$alleles, 
+S0="Western", 
+S1=c("Eastern"), 
+precols=dat$precols, 
+max.S.MAF = 0.1, 
+return.genotype.table=T, 
+return.locus.table=T)
+
+
+#estimate hybrid index
+
+hindlabel <- esth(data.prep.object = prepdata$data.prep, read.data.precols = dat$precols, include.Source = TRUE, nitt=10000, burnin=5000)
+
+hindlabel
+
+greaterthan0.5HI <- write.table(hindlabel$hi)
+
+abc = plot_h(data=hindlabel$hi,
+             test.subject=hindlabel$test.subject,
+             mean.h.by="POPID",			             
+             sort.by=c("mean_h","POPID","h_posterior_mode"),  
+             col.group="POPID",
+             group.sep="POPID",
+             fill.source=TRUE,
+             basic.lines=FALSE,
+             source.col=c("blue","red"),
+             source.limits=c("blue","red"),
+             cex=1,pch=16,
+             cex.lab=1.5,cex.main=1.5,ylim=c(0,1))
+
+
+
+
+
+
+"input.test2.txt" 
+
+prepdata=data.prep(data=dat$data,
+                   loci=dat$loci,
+                   alleles=dat$alleles,
+                   S0="Eastern",
+                   S1="Western",
+                   precols=dat$precols,
+                   return.genotype.table=T, 
+                   return.locus.table=T)
+
+
+
+hindlabel= esth(data.prep.object = prepdata$data.prep, read.data.precols = dat$precols, nitt=2000,burnin=1000)
+
+abc = plot_h(data=hindlabel$hi[c("Western","Contact","Eastern")], 
+test.subject=hindlabel$test.subject, 
+mean.h.by="POPID", 
+sort.by=c("mean_h","POPID","h_posterior_mode"), 
+col.group="POPID", group.sep="POPID", 
+fill.source=TRUE, 
+basic.lines=FALSE, 
+source.col=c("blue","red"), 
+source.limits=c("blue","red"), 
+cex=1,pch=16, 
+cex.lab=1.5,
+cex.main=1.5,
+ylim=c(0,1))

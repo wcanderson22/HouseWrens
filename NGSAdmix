@@ -1,0 +1,7 @@
+#conversion of VCF to beagle file using ANGSD 
+~/angsd/angsd -vcf-pl fst.above.0.5.recode.vcf -doMajorMinor 1 -out testGLs_fst.above.0.5 -doGlf 2
+
+#command to run basic NGSAdmix data
+./NGSadmix -likes inputBeagleFile.gz -K 2 -o outFileName -P 10
+
+#possible to create visual files through R, though I just ran them through google sheets which resulted in useful plots

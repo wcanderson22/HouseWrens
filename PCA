@@ -1,6 +1,5 @@
 ### Some edits need to be done to personalize this to the data at hand.
 
-
 library(plyr)
 library(matrixStats)
 library(ggplot2)
@@ -47,17 +46,18 @@ gcovarmat = do.pca(data, write.gcov=F )
 colRanges(gcovarmat) # checking for NAs
 pca.results = prcomp( gcovarmat ) 
 pcaOut = as.data.frame(cbind(pca.results$x[,1], pca.results$x[,2]))
-pcaData = cbind(meta$status, meta$vcfl.id, meta$phen.index,  pcaOut)
+pcaData = cbind(meta$POPID, meta$IND.ID, meta$mtDNA,  pcaOut)
 names(pcaData) = c("status", "id", "phen.index", "PC1", "PC2")
 status=pcaData$status
-write.table(pcaData, "titmice.all.pca.output.txt", sep="\t", quote=F, row.names = F, col.names = T)
+write.table(pcaData, "wrens.all.pca.output.txt", sep="\t", quote=F, row.names = F, col.names = T)
 summary(pca.results)
+
+pca.results$x
 
 # PCA plot 
 ggplot(data=pcaData, aes(x=PC1, y=PC2, colour=phen.index, shape=status)) + 
   geom_point(size=5, alpha=0.8) +
   stat_ellipse(type = "norm", linetype = 2, size=0.5) +
-  xlab("PC1, 83% of variance") +
-  ylab("PC2, 1% of variance") +
+  xlab("PC1, % of variance") +
+  ylab("PC2, % of variance") +
   theme_bw()
-
